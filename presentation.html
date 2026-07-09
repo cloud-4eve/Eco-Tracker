@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco-Tracker - عرض تقديمي</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .slideshow-container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            padding: 60px 40px;
+            text-align: center;
+            min-height: 600px;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f7f0 100%);
+            animation: fadeIn 0.5s;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .slide h1 {
+            color: #1b5e20;
+            font-size: 48px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .slide h2 {
+            color: #2e7d32;
+            font-size: 36px;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #1b5e20;
+            padding-bottom: 15px;
+        }
+
+        .slide h3 {
+            color: #1b5e20;
+            font-size: 24px;
+            margin: 15px 0;
+        }
+
+        .slide p, .slide li {
+            color: #333;
+            font-size: 18px;
+            line-height: 1.8;
+            margin: 10px 0;
+        }
+
+        .slide ul, .slide ol {
+            text-align: right;
+            margin: 20px 0;
+            list-style-position: inside;
+        }
+
+        .slide li {
+            margin: 12px 0;
+            padding-right: 20px;
+        }
+
+        .slide-title {
+            color: #fff;
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            padding: 40px;
+            margin: -60px -40px 30px -40px;
+            text-align: center;
+        }
+
+        .slide-title h1 {
+            color: white;
+            font-size: 56px;
+        }
+
+        .slide-title p {
+            color: #e8f5e9;
+            font-size: 24px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: #f0f7f0;
+            gap: 20px;
+        }
+
+        button {
+            background: #1b5e20;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #0d3817;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .slide-counter {
+            color: #1b5e20;
+            font-weight: bold;
+            font-size: 16px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .currency-table {
+            margin: 30px auto;
+            border-collapse: collapse;
+            width: 80%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .currency-table th {
+            background: #1b5e20;
+            color: white;
+            padding: 15px;
+            font-size: 18px;
+        }
+
+        .currency-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 16px;
+        }
+
+        .currency-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .qr-code {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .qr-placeholder {
+            width: 200px;
+            height: 200px;
+            background: #f0f7f0;
+            border: 2px dashed #1b5e20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #1b5e20;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+
+        .feature-box {
+            background: #e8f5e9;
+            border-right: 4px solid #1b5e20;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            text-align: right;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .tech-item {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1b5e20;
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1b5e20;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: background 0.3s;
+        }
+
+        .fullscreen-btn:hover {
+            background: #2e7d32;
+        }
+
+        @media (max-width: 768px) {
+            .slide {
+                padding: 40px 20px;
+                min-height: 500px;
+            }
+
+            .slide h1 {
+                font-size: 36px;
+            }
+
+            .slide h2 {
+                font-size: 28px;
+            }
+
+            .slide p, .slide li {
+                font-size: 16px;
+            }
+
+            .controls {
+                padding: 15px 20px;
+            }
+
+            button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="ملء الشاشة">⛶</button>
+    <div class="slideshow-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <div class="slide-title">
+                <h1>🌱 Eco-Tracker</h1>
+                <p>نظام تتبع البصمة الكربونية الذكي</p>
+            </div>
+            <p style="margin-top: 40px; font-size: 20px; color: #2e7d32;">
+                مشروع تخرج يهدف إلى تقليل الانبعاثات الكربونية
+                <br><br>
+                من خلال تطبيق ذكي وسهل الاستخدام
+            </p>
+        </div>
+
+        <!-- Slide 2: Problem -->
+        <div class="slide">
+            <h2>🔴 المشكلة</h2>
+            <div class="feature-box">
+                <h3>التحديات الرئيسية:</h3>
+                <ul>
+                    <li>ارتفاع معدلات الانبعاثات الكربونية بشكل مستمر</li>
+                    <li>عدم وعي المستهلكين بتأثيرهم على البيئة</li>
+                    <li>صعوبة تتبع الاستهلاك الشخصي للموارد</li>
+                    <li>نقص الأدوات الموثوقة لحساب البصمة الكربونية</li>
+                    <li>الحاجة الماسة لحلول مستدامة وفعالة</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 3: Objectives -->
+        <div class="slide">
+            <h2>🎯 الأهداف</h2>
+            <div class="feature-box">
+                <h3>ما نسعى لتحقيقه:</h3>
+                <ul>
+                    <li>توعية المستخدمين بأهمية حماية البيئة</li>
+                    <li>تقديم أداة سهلة لحساب البصمة الكربونية الشخصية</li>
+                    <li>تتبع تقدم المستخدم نحو أسلوب حياة مستدام</li>
+                    <li>توفير نصائح وتوصيات لتقليل الانبعاثات</li>
+                    <li>بناء مجتمع واعي بأهمية الاستدامة البيئية</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 4: Technologies -->
+        <div class="slide">
+            <h2>💻 التقنيات المستخدمة</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <h3>Frontend:</h3>
+                    <p>React.js</p>
+                    <p>Tailwind CSS</p>
+                    <p>Chart.js</p>
+                </div>
+                <div class="tech-item">
+                    <h3>Backend:</h3>
+                    <p>Node.js</p>
+                    <p>Express.js</p>
+                    <p>MongoDB</p>
+                </div>
+                <div class="tech-item">
+                    <h3>الأدوات:</h3>
+                    <p>Firebase Authentication</p>
+                    <p>Rest API</p>
+                    <p>JWT Token</p>
+                </div>
+                <div class="tech-item">
+                    <h3>أخرى:</h3>
+                    <p>Docker</p>
+                    <p>Git</p>
+                    <p>GitHub</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Features Part 1 -->
+        <div class="slide">
+            <h2>✨ الميزات الرئيسية - الجزء الأول</h2>
+            <div class="feature-box">
+                <h3>حساب البصمة الكربونية:</h3>
+                <p>حساب دقيق للانبعاثات من استهلاك الطاقة والمواصلات والطعام</p>
+            </div>
+            <div class="feature-box">
+                <h3>لوحة التحكم التفاعلية:</h3>
+                <p>عرض الإحصائيات والرسوم البيانية بشكل واضح وجذاب</p>
+            </div>
+            <div class="feature-box">
+                <h3>الأهداف الذكية:</h3>
+                <p>وضع أهداف شخصية لتقليل الانبعاثات تدريجياً</p>
+            </div>
+        </div>
+
+        <!-- Slide 6: Currency Exchange Feature -->
+        <div class="slide">
+            <h2>💱 تحويل العملات: الريال ↔️ الجنيه السوداني</h2>
+            <p style="margin: 20px 0; color: #555;">الدعم المتكامل لتحويل الأسعار والتكاليف بين العملتين</p>
+            <table class="currency-table">
+                <tr>
+                    <th>الريال السعودي (SAR)</th>
+                    <th>الجنيه السوداني (SDG)</th>
+                    <th>سعر الصرف</th>
+                </tr>
+                <tr>
+                    <td>1 SAR</td>
+                    <td>≈ 76.50 SDG</td>
+                    <td>محدث يومياً</td>
+                </tr>
+                <tr>
+                    <td>100 SAR</td>
+                    <td>≈ 7,650 SDG</td>
+                    <td>معدل حقيقي</td>
+                </tr>
+                <tr>
+                    <td>1,000 SAR</td>
+                    <td>≈ 76,500 SDG</td>
+                    <td>API مدمج</td>
+                </tr>
+            </table>
+            <p style="margin-top: 20px; font-size: 16px; color: #1b5e20; font-weight: bold;">
+                ✓ تحديث فوري لأسعار الصرف
+                <br>
+                ✓ تحويل تلقائي للعملات
+                <br>
+                ✓ دعم الدول العربية
+            </p>
+        </div>
+
+        <!-- Slide 7: Features Part 2 -->
+        <div class="slide">
+            <h2>✨ الميزات الرئيسية - الجزء الثاني</h2>
+            <div class="feature-box">
+                <h3>المقارنة مع الآخرين:</h3>
+                <p>مقارنة البصمة الكربونية مع المستخدمين الآخرين</p>
+            </div>
+            <div class="feature-box">
+                <h3>التنبيهات والإشعارات:</h3>
+                <p>تنبيهات عند تجاوز حد الانبعاثات المسموح</p>
+            </div>
+            <div class="feature-box">
+                <h3>التقارير الشاملة:</h3>
+                <p>تقارير مفصلة شهرية وسنوية قابلة للتحميل</p>
+            </div>
+        </div>
+
+        <!-- Slide 8: Impact and Benefits -->
+        <div class="slide">
+            <h2>🌍 التأثير والفوائد</h2>
+            <div class="feature-box">
+                <h3>للمستخدمين:</h3>
+                <p>فهم أعمق لتأثيرهم البيئي واتخاذ قرارات أفضل</p>
+            </div>
+            <div class="feature-box">
+                <h3>للمجتمع:</h3>
+                <p>نشر الوعي البيئي وتشجيع السلوكيات المستدامة</p>
+            </div>
+            <div class="feature-box">
+                <h3>للبيئة:</h3>
+                <p>تقليل الانبعاثات الكربونية وحماية الكوكب</p>
+            </div>
+        </div>
+
+        <!-- Slide 9: Implementation Plan -->
+        <div class="slide">
+            <h2>📋 خطة التنفيذ</h2>
+            <div style="text-align: right;">
+                <h3 style="color: #1b5e20; margin-top: 20px;">المراحل الزمنية:</h3>
+                <ol style="text-align: right;">
+                    <li><strong>المرحلة الأولى (الشهر 1-2):</strong> تصميم وتطوير الواجهة الأمامية</li>
+                    <li><strong>المرحلة الثانية (الشهر 3-4):</strong> بناء الخادم وقاعدة البيانات</li>
+                    <li><strong>المرحلة الثالثة (الشهر 5):</strong> التكامل والاختبار الشامل</li>
+                    <li><strong>المرحلة الرابعة (الشهر 6):</strong> النشر والإطلاق الرسمي</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Slide 10: Team and Resources -->
+        <div class="slide">
+            <h2>👥 الفريق والموارد</h2>
+            <div class="feature-box">
+                <h3>الفريق:</h3>
+                <p>مجموعة من المطورين والمصممين والباحثين المتخصصين</p>
+            </div>
+            <div class="feature-box">
+                <h3>الموارد:</h3>
+                <p>خوادم سحابية | أدوات تطوير احترافية | قواعد بيانات موثوقة</p>
+            </div>
+            <div class="feature-box">
+                <h3>الدعم:</h3>
+                <p>دعم فني 24/7 | توثيق شامل | مجتمع نشط</p>
+            </div>
+        </div>
+
+        <!-- Slide 11: Conclusion with QR -->
+        <div class="slide">
+            <div class="slide-title">
+                <h1>🎉 الخاتمة</h1>
+                <p>شكراً لاهتمامكم بمشروع Eco-Tracker</p>
+            </div>
+            <p style="margin: 30px 0; font-size: 18px;">معاً من أجل مستقبل أخضر مستدام</p>
+            <div class="qr-code">
+                <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.io" alt="QR Code" style="border: 2px dashed #1b5e20; border-radius: 8px;">
+            </div>
+            <p style="margin-top: 30px; color: #1b5e20; font-weight: bold; font-size: 16px;">
+                للمزيد من المعلومات، قم بمسح رمز QR أو زيارة موقعنا
+            </p>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button onclick="changeSlide(-1)">← السابق</button>
+            <span class="slide-counter"><span id="current">1</span> / 11</span>
+            <button onclick="changeSlide(1)">التالي →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 11;
+
+        function showSlide(n) {
+            const slides = document.querySelectorAll('.slide');
+            
+            if (n > totalSlides) {
+                currentSlide = 1;
+            }
+            if (n < 1) {
+                currentSlide = totalSlides;
+            }
+            
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[currentSlide - 1].classList.add('active');
+            document.getElementById('current').textContent = currentSlide;
+        }
+
+        function changeSlide(n) {
+            currentSlide += n;
+            showSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') changeSlide(1);
+            if (e.key === 'ArrowLeft') changeSlide(-1);
+        });
+
+        function toggleFullscreen() {
+            const elem = document.documentElement;
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        // Initialize
+        showSlide(currentSlide);
+    </script>
+</body>
+</html>
