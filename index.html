@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام ذكي لمراقبة الطاقة والنفايات - Eco-Tracker</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        :root { --green: #0b6b3a; --dark: #063f23; --muted: #f4f7f5; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f8fcf9; color: #333; display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background-color: var(--dark); color: white; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .brand { font-size: 20px; font-weight: bold; color: #cfe9d6; text-align: center; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .nav-links { display: flex; flex-direction: column; gap: 10px; list-style: none; }
+        .nav-links a { color: #cfe9d6; text-decoration: none; padding: 10px 15px; border-radius: 5px; display: block; font-size: 14px; }
+        .nav-links a:hover, .nav-links a.active { background-color: rgba(255,255,255,0.1); color: white; }
+        .main-content { flex: 1; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .header h1 { font-size: 22px; color: var(--dark); }
+        .controls { display: flex; gap: 15px; align-items: center; }
+        select { padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; outline: none; background: white; cursor: pointer; }
+        .btn-refresh { background-color: var(--green); color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-refresh:hover { background-color: var(--dark); }
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .cards-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; grid-column: span 2; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border-right: 4px solid var(--green); }
+        .card .label { font-size: 13px; color: #666; margin-bottom: 5px; }
+        .card .value { font-size: 24px; font-weight: bold; color: var(--dark); }
+        .card .sub { font-size: 11px; color: #888; margin-top: 5px; }
+        .section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .section h2 { font-size: 16px; margin-bottom: 15px; color: var(--dark); border-bottom: 2px solid var(--muted); padding-bottom: 8px; }
+        .chart-container { height: 260px; position: relative; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { padding: 10px; text-align: right; border-bottom: 1px solid #eee; }
+        th { background-color: var(--muted); color: var(--dark); font-weight: 600; }
+        .status-badge { padding: 3px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; }
+        .status-ok { background-color: #e6f4ea; color: #137333; }
+        .status-warn { background-color: #fef7e0; color: #b06000; }
+        .calculator { display: flex; flex-direction: column; gap: 12px; }
+        .calculator input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; outline: none; font-size: 14px; }
+        .calculator button { background-color: var(--dark); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .calculator button:hover { background-color: var(--green); }
+        .calc-result { font-size: 14px; font-weight: bold; color: var(--green); text-align: center; margin-top: 5px; }
+        .tips-list { display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #555; line-height: 1.6; }
+        .tips-list li { background: var(--muted); padding: 10px; border-radius: 5px; list-style: none; border-right: 3px solid var(--green); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="brand">Eco-Tracker</div>
+        <ul class="nav-links">
+            <li><a href="#" class="active">لوحة التحكم</a></li>
+            <li><a href="#">التقارير الفواتير</a></li>
+            <li><a href="#">إعدادات الحساسات</a></li>
+        </ul>
+        <div style="margin-top: auto; font-size: 11px; text-align: center; color: #cfe9d6;">حالة النظام: متصل</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1>لوحة تحكم استهلاك الطاقة والنفايات</h1>
+            <div class="controls">
+                <select id="currencySelect" onchange="changeCurrency()">
+                    <option value="SAR">الريال السعودي (ر.س)</option>
+                    <option value="SDG">الجنيه السوداني (ج.س)</option>
+                </select>
+                <button class="btn-refresh" onclick="refreshData()">تحديث البيانات</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="cards-container">
+                <div class="card">
+                    <div class="label">استهلاك الكهرباء الحالي</div>
+                    <div class="value" id="elecVal">1,240 kWh</div>
+                    <div class="sub">تغير عن الأمس: -6.2%</div>
+                </div>
+                <div class="card">
+                    <div class="label">استهلاك المياه الحالي</div>
+                    <div class="value" id="waterVal">8,540 L</div>
+                    <div class="sub">تغير عن الأمس: +1.1%</div>
+                </div>
+                <div class="card">
+                    <div class="label">انبعاثات الكربون التقديرية</div>
+                    <div class="value">540 kg CO2</div>
+                    <div class="sub">قياس تلقائي من الحساسات</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>نصائح الذكاء الاصطناعي لترشيد الاستهلاك</h2>
+                <ul class="tips-list">
+                    <li>جدولة تشغيل الأجهزة ذات الأحمال العالية خلال ساعات الذروة المنخفضة للحد من تكلفة الكهرباء.</li>
+                    <li>ضبط الإضاءة في المناطق غير المستخدمة يقلل استهلاك الكهرباء بنسبة تصل إلى 15%.</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>مخططات الاستهلاك الشهري</h2>
+                <div class="chart-container">
+                    <canvas id="consumptionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>حاسبة تقديرية للكهرباء</h2>
+                <div class="calculator">
+                    <label style="font-size: 13px; color: #666;">استهلاكك الحالي (kWh)</label>
+                    <input type="number" id="calcInput" placeholder="أدخل الكمية">
+                    <button onclick="calculateCost()">احسب التكلفة</button>
+                    <div class="calc-result" id="calcResult">أدخل قيمة لتظهر التكلفة التقديرية.</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>تفاصيل الحساسات</h2>
+                <table>
+                    <thead>
+                        <tr><th>الحساس</th><th>الموقع</th><th>الحالة</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>حساس كهرباء</td><td>اللوحة 1</td><td><span class="status-badge status-ok">سليم</span></td></tr>
+                        <tr><td>حساس ماء</td><td>المبنى الرئيسي</td><td><span class="status-badge status-ok">سليم</span></td></tr>
+                        <tr><td>حساس جودة الهواء</td><td>محطة 2</td><td><span class="status-badge status-warn">يتطلب معايرة</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2>سجل فواتير الشهر</h2>
+                <table>
+                    <thead>
+                        <tr><th>الشهر</th><th>الكهرباء</th><th>المياه</th><th>الإجمالي</th><th>الحالة</th></tr>
+                    </thead>
+                    <tbody id="invoiceTableBody">
+                        <!-- البيانات تُعرض ديناميكياً بواسطة جافا سكريبت -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // سعر الصرف الافتراضي للتجربة والمحاكاة: 1 ريال سعودي = 160 جنيه سوداني
+        const exchangeRate = 160; 
+        let currentCurrency = 'SAR';
+
+        // بيانات الفواتير الأساسية بالريال السعودي
+        const baseInvoices = [
+            { month: 'يونيو 2026', elec: 'kWh 1200', water: 'L 8500', total: 3800, status: 'مدفوعة', statusClass: 'status-ok' },
+            { month: 'مايو 2026', elec: 'kWh 1340', water: 'L 7600', total: 4020, status: 'قيد المعالجة', statusClass: 'status-warn' }
+        ];
+
+        // تعرفة الكهرباء الافتراضية: 0.18 ريال لكل كيلواط
+        const baseTariff = 0.18; 
+
+        function renderInvoices() {
+            const tbody = document.getElementById('invoiceTableBody');
+            const symbol = currentCurrency === 'SAR' ? 'ر.س' : 'ج.س';
+            
+            tbody.innerHTML = baseInvoices.map(inv => {
+                const displayTotal = currentCurrency === 'SAR' ? inv.total : Math.round(inv.total * exchangeRate);
+                return `
+                    <tr>
+                        <td>${inv.month}</td>
+                        <td>${inv.elec}</td>
+                        <td>${inv.water}</td>
+                        <td style="font-weight:bold; color:var(--dark);">${displayTotal} ${symbol}</td>
+                        <td><span class="status-badge ${inv.statusClass}">${inv.status}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function calculateCost() {
+            const input = document.getElementById('calcInput');
+            const result = document.getElementById('calcResult');
+            const kwh = parseFloat(input.value);
+            if (isNaN(kwh) || kwh < 0) {
+                result.textContent = 'الرجاء إدخال قيمة صحيحة.';
+                return;
+            }
+            let cost = kwh * baseTariff; // in SAR
+            let symbol = 'ر.س';
+            if (currentCurrency !== 'SAR') {
+                cost = Math.round(cost * exchangeRate);
+                symbol = 'ج.س';
+            } else {
+                cost = cost.toFixed(2);
+            }
+            result.textContent = `التكلفة التقديرية: ${cost} ${symbol}`;
+        }
+
+        function changeCurrency() {
+            const sel = document.getElementById('currencySelect');
+            currentCurrency = sel.value;
+            renderInvoices();
+        }
+
+        function refreshData() {
+            // محاكاة تحديث البيانات
+            renderInvoices();
+        }
+// تهيئة العرض عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    renderInvoices();
+});
+</script>
+</body>
+</html>
