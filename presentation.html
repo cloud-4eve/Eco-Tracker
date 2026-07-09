@@ -467,6 +467,69 @@
             </div>
         </div>
 
+        <!-- New Slides: Title, Problem & Goal, Features, Technologies -->
+        <!-- Slide 7: Title -->
+        <div class="slide">
+            <div class="slide-title">
+                <h1>Eco-Tracker</h1>
+                <p>نظام تتبع بيئي ذكي لمراقبة وتقليل الأثر البيئي</p>
+            </div>
+            <p style="margin: 20px 0; font-size: 18px;">حل متكامل يجمع بين الاستشعار، التحليلات، والتقارير البصرية</p>
+        </div>
+
+        <!-- Slide 8: Problem & Goal -->
+        <div class="slide">
+            <div class="slide-title">
+                <h1>المشكلة والهدف</h1>
+            </div>
+            <div class="feature-box">
+                <h3>المشكلة:</h3>
+                <p>قلة البيانات الحقيقية حول جودة الهواء واستهلاك الموارد تعيق اتخاذ قرارات فعّالة.</p>
+            </div>
+            <div class="feature-box">
+                <h3>الهدف:</h3>
+                <p>توفير منصة مراقبة دقيقة وسهلة الاستخدام تساعد المؤسسات والمجتمعات على تقليل الأثر البيئي.</p>
+            </div>
+        </div>
+
+        <!-- Slide 9: Features -->
+        <div class="slide">
+            <div class="slide-title">
+                <h1>المميزات</h1>
+            </div>
+            <div class="feature-box">
+                <h3>مراقبة حية:</h3>
+                <p>قراءات آنية لمؤشرات جودة الهواء والمياه والطاقة.</p>
+            </div>
+            <div class="feature-box">
+                <h3>تنبيهات ذكية:</h3>
+                <p>إشعارات عند تخطي القيم الحدود الآمنة.</p>
+            </div>
+            <div class="feature-box">
+                <h3>تقارير وتصورات:</h3>
+                <p>لوحات تحكم ورسوم بيانية لتتبع الأداء والاتجاهات.</p>
+            </div>
+        </div>
+
+        <!-- Slide 10: Technologies -->
+        <div class="slide">
+            <div class="slide-title">
+                <h1>التقنيات المستخدمة</h1>
+            </div>
+            <div class="feature-box">
+                <h3>الأجهزة:</h3>
+                <p>حساسات دقيقة ومعايير اتصال لاسلكية منخفضة الطاقة.</p>
+            </div>
+            <div class="feature-box">
+                <h3>البرمجيات:</h3>
+                <p>واجهة ويب تفاعلية، تحليل بيانات سحابي، وتنبيهات آلية.</p>
+            </div>
+            <div class="feature-box">
+                <h3>التكامل:</h3>
+                <p>دعم APIs وخرائط وقواعد بيانات قابلة للتوسع.</p>
+            </div>
+        </div>
+
         <!-- Slide 11: Conclusion with QR -->
         <div class="slide">
             <div class="slide-title">
@@ -475,7 +538,7 @@
             </div>
             <p style="margin: 30px 0; font-size: 18px;">معاً من أجل مستقبل أخضر مستدام</p>
             <div class="qr-code">
-                <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.io" alt="QR Code" style="border: 2px dashed #1b5e20; border-radius: 8px;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https://cloud-4eve.github.io/Eco-Tracker" alt="QR Code" style="border-radius: 8px; width: 300px; height: 300px;">
             </div>
             <p style="margin-top: 30px; color: #1b5e20; font-weight: bold; font-size: 16px;">
                 للمزيد من المعلومات، قم بمسح رمز QR أو زيارة موقعنا
@@ -485,14 +548,14 @@
         <!-- Controls -->
         <div class="controls">
             <button onclick="changeSlide(-1)">← السابق</button>
-            <span class="slide-counter"><span id="current">1</span> / 11</span>
+            <span class="slide-counter"><span id="current">1</span> / 15</span>
             <button onclick="changeSlide(1)">التالي →</button>
         </div>
     </div>
 
     <script>
         let currentSlide = 1;
-        const totalSlides = 11;
+        const totalSlides = 15;
 
         function showSlide(n) {
             const slides = document.querySelectorAll('.slide');
