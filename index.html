@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام ذكي لمراقبة الطاقة والنفايات - Eco-Tracker</title>
     <script src="chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --green: #0b6b3a; --dark: #063f23; --muted: #f4f7f5; }
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
@@ -21,12 +22,16 @@
         select { padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; font-size: 14px; outline: none; background: white; cursor: pointer; }
         .btn-refresh { background-color: var(--green); color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 14px; }
         .btn-refresh:hover { background-color: var(--dark); }
+        .btn-export { background-color: var(--dark); color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .btn-export:hover { background-color: var(--green); }
         .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
         .cards-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; grid-column: span 2; }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); border-right: 4px solid var(--green); }
         .card .label { font-size: 13px; color: #666; margin-bottom: 5px; }
         .card .value { font-size: 24px; font-weight: bold; color: var(--dark); }
         .card .sub { font-size: 11px; color: #888; margin-top: 5px; }
+        .points-card { border-right-color: #2e7d32; }
+        .reward-message { margin-top: 10px; padding: 10px; border-radius: 6px; background: #e8f5e9; color: #1b5e20; font-size: 13px; font-weight: bold; display: none; }
         .section { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .section h2 { font-size: 16px; margin-bottom: 15px; color: var(--dark); border-bottom: 2px solid var(--muted); padding-bottom: 8px; }
         .section-panel { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: none; }
@@ -48,12 +53,18 @@
         .sensor-meta span { font-size: 12px; color: #666; }
         .sensor-actions { display: flex; gap: 8px; }
         .toggle-btn { border: none; padding: 7px 12px; border-radius: 999px; font-size: 12px; cursor: pointer; font-weight: 700; }
-        .toggle-btn.on { background: var(--green); color: white; }
-        .toggle-btn.off { background: #eef2ef; color: #555; }
+        .toggle-btn.on, .toggle-btn.on-state { background: var(--green); color: white; }
+        .toggle-btn.off, .toggle-btn.off-state { background: #8e8e8e; color: white; }
+        .toggle-btn.disabled { opacity: 0.65; cursor: not-allowed; }
+        .sensor-card.active { border-color: var(--green); box-shadow: inset 0 0 0 1px rgba(11, 107, 58, 0.1); }
+        .sensor-card.inactive { border-color: #bdbdbd; }
         .control-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
         .control-group label { font-size: 13px; color: #666; }
         .control-group input, .control-group select { padding: 10px; border: 1px solid #ccc; border-radius: 7px; font-size: 14px; }
         .save-btn { background: var(--dark); color: white; border: none; padding: 10px 14px; border-radius: 7px; font-size: 14px; cursor: pointer; width: 100%; }
+        .water-alert { margin-top: 12px; padding: 12px; border-radius: 8px; background: #e8f5e9; color: #1b5e20; border: 1px solid #a5d6a7; display: none; animation: pulseAlert 1s infinite; }
+        .water-alert.active { display: block; }
+        @keyframes pulseAlert { 0%, 100% { background: #e8f5e9; } 50% { background: #c8e6c9; } }
         .save-btn:hover { background: var(--green); }
         .chart-container { height: 260px; position: relative; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
@@ -67,6 +78,12 @@
         .calculator button { background-color: var(--dark); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
         .calculator button:hover { background-color: var(--green); }
         .calc-result { font-size: 14px; font-weight: bold; color: var(--green); text-align: center; margin-top: 5px; }
+        .budget-warning { margin-top: 8px; padding: 10px; border-radius: 6px; background: #ffebee; color: #c62828; font-size: 13px; font-weight: bold; display: none; }
+        .simulator-box { margin-top: 8px; padding: 12px; border: 1px solid #e2e8e2; border-radius: 8px; background: #f9fcf9; }
+        .simulator-box h4 { font-size: 14px; color: var(--dark); margin-bottom: 8px; }
+        .simulator-option { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; font-size: 13px; color: #555; }
+        .simulator-option label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .simulator-option input { accent-color: var(--green); }
         .tips-list { display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #555; line-height: 1.6; }
         .tips-list li { background: var(--muted); padding: 10px; border-radius: 5px; list-style: none; border-right: 3px solid var(--green); }
         .notification-bar { background: white; padding: 15px 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 15px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.5s ease-out; }
@@ -102,7 +119,6 @@
     </style>
 </head>
 <body>
-
     <div class="sidebar">
         <div class="brand">Eco-Tracker</div>
         <ul class="nav-links">
@@ -121,6 +137,7 @@
                     <option value="SAR">الريال السعودي (ر.س)</option>
                     <option value="SDG">الجنيه السوداني (ج.س)</option>
                 </select>
+                <button class="btn-export" onclick="exportMonthlyReport()">تصدير التقرير الشهري</button>
                 <button class="btn-refresh" onclick="refreshData()">تحديث البيانات</button>
             </div>
         </div>
@@ -139,8 +156,14 @@
                 </div>
                 <div class="card">
                     <div class="label">انبعاثات الكربون التقديرية</div>
-                    <div class="value">540 kg CO2</div>
+                    <div class="value" id="carbonValue">540 kg CO2</div>
                     <div class="sub">قياس تلقائي من الحساسات</div>
+                </div>
+                <div class="card points-card">
+                    <div class="label">النقاط الخضراء (Green Points)</div>
+                    <div class="value" id="greenPointsValue">0</div>
+                    <div class="sub">مكافآت الاستهلاك الرشيد</div>
+                    <div class="reward-message" id="rewardMessage">تهانينا! لقد ساهمت في حماية البيئة وحصلت على نقاط مكافأة.</div>
                 </div>
             </div>
 
@@ -164,8 +187,26 @@
                 <div class="calculator">
                     <label style="font-size: 13px; color: #666;">استهلاكك الحالي (kWh)</label>
                     <input type="number" id="calcInput" placeholder="أدخل الكمية">
+                    <label style="font-size: 13px; color: #666;">تحديد ميزانية الشهر (ريال)</label>
+                    <input type="number" id="budgetInput" placeholder="أدخل الميزانية">
                     <button onclick="calculateCost()">احسب التكلفة</button>
                     <div class="calc-result" id="calcResult">أدخل قيمة لتظهر التكلفة التقديرية.</div>
+                    <div class="budget-warning" id="budgetWarning">⚠️ تجاوزت التكلفة التقديرية ميزانيتك، يرجى ترشيد الاستهلاك فوراً.</div>
+                    <div class="simulator-box">
+                        <h4>محاكي الفاتورة الذكي</h4>
+                        <div class="simulator-option">
+                            <label><input type="checkbox" data-device="تكييف إضافي" data-cost="45"> تكييف إضافي</label>
+                            <span>+45 ر.س</span>
+                        </div>
+                        <div class="simulator-option">
+                            <label><input type="checkbox" data-device="إضاءة كاملة" data-cost="18"> إضاءة كاملة</label>
+                            <span>+18 ر.س</span>
+                        </div>
+                        <div class="simulator-option">
+                            <label><input type="checkbox" data-device="غسالة ملابس" data-cost="22"> غسالة ملابس</label>
+                            <span>+22 ر.س</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -272,7 +313,14 @@
                             <option>10</option>
                         </select>
                     </div>
+                    <div class="control-group">
+                        <label for="waterUsageInput">استهلاك المياه اليومي (لتر)</label>
+                        <input id="waterUsageInput" type="number" value="12000" />
+                    </div>
                     <button class="save-btn" onclick="alert('تم حفظ الإعدادات التجريبية بنجاح')">حفظ الإعدادات</button>
+                    <div class="water-alert" id="waterAlert">
+                        تحذير: تم رصد نمط استهلاك غير طبيعي في المبنى الرئيسي، يُخشى وجود تسريب مياه، يرجى فحص المحابس أو تفعيل الإغلاق التلقائي
+                    </div>
                 </div>
             </div>
         </div>
@@ -300,6 +348,60 @@
         // تعرفة الكهرباء الافتراضية: 0.18 ريال لكل كيلواط
         const baseTariff = 0.18; 
         const highConsumptionThreshold = 1000; // kWh threshold for alert flash
+        const STORAGE_KEY = 'ecoTrackerState';
+
+        function getDefaultState() {
+            return {
+                elecValue: 1240,
+                waterValue: 8540,
+                carbonValue: 540,
+                greenPoints: 0,
+                sensors: {}
+            };
+        }
+
+        function loadSiteState() {
+            try {
+                const savedState = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                if (savedState && typeof savedState === 'object') {
+                    return {
+                        ...getDefaultState(),
+                        ...savedState,
+                        sensors: { ...getDefaultState().sensors, ...(savedState.sensors || {}) }
+                    };
+                }
+            } catch (error) {
+                console.warn('تعذر قراءة بيانات LocalStorage:', error);
+            }
+            return getDefaultState();
+        }
+
+        function saveSiteState() {
+            const elecValueText = document.getElementById('elecVal')?.textContent || '';
+            const waterValueText = document.getElementById('waterVal')?.textContent || '';
+            const carbonValueText = document.getElementById('carbonValue')?.textContent || '';
+            const greenPointsValue = document.getElementById('greenPointsValue')?.textContent || '0';
+            const sensors = {};
+
+            document.querySelectorAll('.sensor-card').forEach(card => {
+                const sensorName = card.querySelector('.sensor-meta strong')?.textContent?.trim() || 'sensor';
+                sensors[sensorName] = card.classList.contains('active') ? 'active' : 'inactive';
+            });
+
+            const state = {
+                elecValue: parseInt(elecValueText.replace(/[^\d]/g, ''), 10) || 1240,
+                waterValue: parseInt(waterValueText.replace(/[^\d]/g, ''), 10) || 8540,
+                carbonValue: parseFloat((carbonValueText.match(/\d+(?:\.\d+)?/) || ['540'])[0]) || 540,
+                greenPoints: parseInt(greenPointsValue, 10) || 0,
+                sensors
+            };
+
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (error) {
+                console.warn('تعذر حفظ بيانات LocalStorage:', error);
+            }
+        }
 
         function renderInvoices() {
             const tbody = document.getElementById('invoiceTableBody');
@@ -321,10 +423,14 @@
 
         function calculateCost() {
             const input = document.getElementById('calcInput');
+            const budgetInput = document.getElementById('budgetInput');
             const result = document.getElementById('calcResult');
+            const warning = document.getElementById('budgetWarning');
             const kwh = parseFloat(input.value);
+            const budget = parseFloat(budgetInput.value);
             if (isNaN(kwh) || kwh < 0) {
                 result.textContent = 'الرجاء إدخال قيمة صحيحة.';
+                warning.style.display = 'none';
                 return;
             }
             let cost = kwh * baseTariff; // in SAR
@@ -335,7 +441,24 @@
             } else {
                 cost = cost.toFixed(2);
             }
-            result.textContent = `التكلفة التقديرية: ${cost} ${symbol}`;
+            const numericCost = Number(cost);
+            let extraCost = 0;
+            document.querySelectorAll('.simulator-option input:checked').forEach(item => {
+                extraCost += Number(item.getAttribute('data-cost'));
+            });
+            const finalCost = numericCost + extraCost;
+            result.textContent = `التكلفة التقديرية: ${finalCost.toFixed(2)} ${symbol}`;
+
+            if (!isNaN(budget) && budget > 0 && finalCost > budget) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+
+            const isLowCost = (!isNaN(budget) && budget > 0 && finalCost <= budget * 0.8) || finalCost <= 50;
+            if (isLowCost) {
+                addGreenPoints(50);
+            }
         }
 
         function flashAlert() {
@@ -369,6 +492,195 @@
             }
         }
 
+        function exportMonthlyReport() {
+            const energy = document.getElementById('elecVal').textContent;
+            const water = document.getElementById('waterVal').textContent;
+            const carbon = '540 kg CO2';
+            const reportLines = [
+                'تقرير استهلاك شهري',
+                '=================',
+                `استهلاك الكهرباء: ${energy}`,
+                `استهلاك المياه: ${water}`,
+                `انبعاثات الكربون: ${carbon}`,
+                '',
+                'تم إنشاؤه من لوحة Eco-Tracker'
+            ];
+            const csvContent = reportLines.join('\n');
+            const blob = new Blob([csvContent], { type: 'text/plain;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'monthly-report.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        let greenPoints = 0;
+
+        function showRewardMessage() {
+            const message = document.getElementById('rewardMessage');
+            if (!message) return;
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        function addGreenPoints(amount = 50) {
+            greenPoints += amount;
+            const pointsElement = document.getElementById('greenPointsValue');
+            if (pointsElement) {
+                pointsElement.textContent = greenPoints;
+            }
+            showRewardMessage();
+            saveSiteState();
+        }
+
+        function applyStoredState(state) {
+            const elecValueElement = document.getElementById('elecVal');
+            const waterValueElement = document.getElementById('waterVal');
+            const carbonValueElement = document.getElementById('carbonValue');
+            const greenPointsElement = document.getElementById('greenPointsValue');
+            const waterUsageInput = document.getElementById('waterUsageInput');
+
+            if (elecValueElement) {
+                elecValueElement.textContent = `${Number(state.elecValue || 1240).toLocaleString()} kWh`;
+            }
+            if (waterValueElement) {
+                waterValueElement.textContent = `${Number(state.waterValue || 8540).toLocaleString()} L`;
+            }
+            if (carbonValueElement) {
+                carbonValueElement.textContent = `${Number(state.carbonValue || 540).toFixed(1)} kg CO2`;
+            }
+            if (greenPointsElement) {
+                greenPointsElement.textContent = state.greenPoints || 0;
+                greenPoints = Number(state.greenPoints || 0);
+            }
+            if (waterUsageInput) {
+                waterUsageInput.value = state.waterValue || 8540;
+            }
+
+            document.querySelectorAll('.sensor-card').forEach(card => {
+                const sensorName = card.querySelector('.sensor-meta strong')?.textContent?.trim() || 'sensor';
+                const isActive = (state.sensors && state.sensors[sensorName]) === 'active';
+                setSensorCardState(card, isActive);
+            });
+
+            monitorWaterUsage();
+            saveSiteState();
+        }
+
+        function startLiveConsumptionMonitor() {
+            setInterval(() => {
+                const elecValueElement = document.getElementById('elecVal');
+                const waterValueElement = document.getElementById('waterVal');
+                const waterUsageInput = document.getElementById('waterUsageInput');
+
+                if (elecValueElement) {
+                    const currentElec = parseInt(elecValueElement.textContent.replace(/[^\d]/g, ''), 10) || 1240;
+                    elecValueElement.textContent = `${(currentElec + 2).toLocaleString()} kWh`;
+                }
+                if (waterValueElement) {
+                    const currentWater = parseInt(waterValueElement.textContent.replace(/[^\d]/g, ''), 10) || 8540;
+                    waterValueElement.textContent = `${(currentWater + 8).toLocaleString()} L`;
+                }
+                if (waterUsageInput) {
+                    waterUsageInput.value = parseInt(waterValueElement?.textContent.replace(/[^\d]/g, ''), 10) || 8540;
+                }
+                saveSiteState();
+            }, 5000);
+        }
+
+        function startLiveCarbonCounter() {
+            const carbonValue = document.getElementById('carbonValue');
+            if (!carbonValue) return;
+
+            let currentValue = 540;
+            setInterval(() => {
+                currentValue += Math.random() * 0.8 + 0.1;
+                carbonValue.textContent = `${currentValue.toFixed(1)} kg CO2`;
+            }, 4000);
+        }
+
+        function monitorWaterUsage() {
+            const waterInput = document.getElementById('waterUsageInput');
+            const waterAlert = document.getElementById('waterAlert');
+            if (!waterInput || !waterAlert) return;
+
+            const currentUsage = parseFloat(waterInput.value);
+            if (!isNaN(currentUsage) && currentUsage > 10000) {
+                waterAlert.classList.add('active');
+            } else {
+                waterAlert.classList.remove('active');
+            }
+        }
+
+        function initConsumptionChart() {
+            const canvas = document.getElementById('consumptionChart');
+            if (!canvas) return;
+
+            if (window.consumptionChartInstance) {
+                window.consumptionChartInstance.destroy();
+            }
+
+            window.consumptionChartInstance = new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
+                    datasets: [
+                        {
+                            label: 'استهلاك الكهرباء (kWh)',
+                            data: [1180, 1240, 1210, 1285, 1320, 1260],
+                            backgroundColor: 'rgba(11, 107, 58, 0.8)',
+                            borderColor: '#0b6b3a',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'استهلاك المياه (L)',
+                            data: [7200, 7450, 7300, 7600, 7820, 7540],
+                            backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                            borderColor: '#4caf50',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#2f4f3f',
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#4f5b53' },
+                            grid: { color: 'rgba(0,0,0,0.06)' }
+                        },
+                        x: {
+                            ticks: { color: '#4f5b53' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
         function showSection(sectionId) {
             // إخفاء جميع الأقسام
             document.getElementById('dashboardGrid').style.display = sectionId === 'dashboard' ? 'grid' : 'none';
@@ -388,34 +700,92 @@
             } else if (sectionId === 'sensorsSection') {
                 document.getElementById('navSensors').classList.add('active');
             }
+
+        }
+
+        function sendRemoteControlCommand(sensorName, action) {
+            console.log(`تم إرسال أمر التحكم عن بُعد إلى ${sensorName}: ${action}`);
+            return `${sensorName} => ${action}`;
+        }
+
+        function setSensorCardState(card, isActive) {
+            const statusLabel = card.querySelector('.sensor-meta span');
+            const onButton = card.querySelector('.toggle-btn.on, .toggle-btn.on-state');
+            const offButton = card.querySelector('.toggle-btn.off, .toggle-btn.off-state');
+
+            if (isActive) {
+                if (onButton) {
+                    onButton.className = 'toggle-btn on-state';
+                    onButton.textContent = 'نشط';
+                }
+                if (offButton) {
+                    offButton.className = 'toggle-btn off';
+                    offButton.textContent = 'إطفاء';
+                }
+                card.classList.add('active');
+                card.classList.remove('inactive');
+                if (statusLabel) {
+                    statusLabel.textContent = 'الحساس نشط';
+                }
+            } else {
+                if (onButton) {
+                    onButton.className = 'toggle-btn on';
+                    onButton.textContent = 'تشغيل';
+                }
+                if (offButton) {
+                    offButton.className = 'toggle-btn off-state';
+                    offButton.textContent = 'مُطفأ';
+                }
+                card.classList.remove('active');
+                card.classList.add('inactive');
+                if (statusLabel) {
+                    statusLabel.textContent = 'الحساس مُطفأ';
+                }
+            }
+        }
+
+        function toggleSensor(button, sensorName) {
+            const card = button.closest('.sensor-card');
+            const isTurnOnButton = button.classList.contains('on') || button.classList.contains('on-state');
+            const isTurnOffButton = button.classList.contains('off') || button.classList.contains('off-state');
+
+            if (isTurnOnButton) {
+                setSensorCardState(card, true);
+                sendRemoteControlCommand(sensorName, 'تشغيل');
+            } else if (isTurnOffButton) {
+                setSensorCardState(card, false);
+                addGreenPoints(50);
+                sendRemoteControlCommand(sensorName, 'إطفاء');
+            }
+            saveSiteState();
         }
         
-        // تفعيل التنقل الديناميكي وتجهيز العرض
-document.addEventListener('DOMContentLoaded', () => {
-    renderInvoices();
-    
-    document.querySelectorAll('button, a, .nav-item').forEach(element => {
-        element.addEventListener('click', function() {
-            const text = this.innerText || this.textContent;
-            
-            if (text.includes('تحكم') || text.includes('Dashboard')) {
-                document.getElementById('dashboardGrid').style.display = 'grid';
-                document.getElementById('invoicesSection').style.display = 'none';
-                document.getElementById('sensorsSection').style.display = 'none';
-            } 
-            else if (text.includes('تقارير') || text.includes('فواتير') || text.includes('Invoice')) {
-                document.getElementById('dashboardGrid').style.display = 'none';
-                document.getElementById('invoicesSection').style.display = 'block';
-                document.getElementById('sensorsSection').style.display = 'none';
-            } 
-            else if (text.includes('حساسات') || text.includes('Sensor')) {
-                document.getElementById('dashboardGrid').style.display = 'none';
-                document.getElementById('invoicesSection').style.display = 'none';
-                document.getElementById('sensorsSection').style.display = 'block';
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedState = loadSiteState();
+            applyStoredState(storedState);
+            renderInvoices();
+            initConsumptionChart();
+            startLiveCarbonCounter();
+            startLiveConsumptionMonitor();
+            showSection('dashboard');
+
+            document.querySelectorAll('.toggle-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const sensorName = this.closest('.sensor-card').querySelector('.sensor-meta strong').textContent;
+                    toggleSensor(this, sensorName);
+                });
+            });
+
+            document.querySelectorAll('.simulator-option input').forEach(input => {
+                input.addEventListener('change', calculateCost);
+            });
+
+            const waterUsageInput = document.getElementById('waterUsageInput');
+            if (waterUsageInput) {
+                waterUsageInput.addEventListener('input', monitorWaterUsage);
+                monitorWaterUsage();
             }
         });
-    });
-});
 </script>
 </body>
 </html>
